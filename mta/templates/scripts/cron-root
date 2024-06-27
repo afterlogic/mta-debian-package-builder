@@ -1,0 +1,2 @@
+0 */1 * * * /usr/sbin/ntpdate 0.pool.ntp.org
+*/5 * * * * php /opt/afterlogic/html/modules/Calendar/Cron.php

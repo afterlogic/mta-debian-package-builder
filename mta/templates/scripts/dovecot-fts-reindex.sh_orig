@@ -1,0 +1,139 @@
+#! /bin/bash
+#
+# incremental fts reindexing (when a new mail
+# arrived or user logged in)
+#
+
+BASEDIR="/opt/afterlogic"
+excfile="${BASEDIR}/scripts/exclusions.cfg"
+sock="${BASEDIR}/var/run/dovecot/doveadm-server"
+
+# doveadm index instances
+instances=1
+
+USER=$1
+mbox=$2
+
+quelock="${BASEDIR}/var/run/fts-reindex-que.lck"
+
+processque() {
+    # process queue
+    while read ln; do
+	usr=`echo $ln | awk '{print $1}'`
+	mb=`echo $ln  | awk '{print $2}'`
+	if [ "${usr}" == "" -o "${mb}" == "" ]; then
+	    continue
+	fi
+	local_part=`echo ${usr} | awk -F@ '{print $1}'`
+	domain=`echo ${usr} | awk -F@ '{print $2}'`
+	maildir="${BASEDIR}/data/${domain}/${local_part}"
+	timestamp="${maildir}/reindex-timestamp"
+	now=`date +%s`
+	ts="$now"
+	if [ -f ${timestamp} ]; then
+	    ts=`cat ${timestamp}`
+	fi
+	let "time=now-ts"
+	# reindex only if more than an hour passed
+	if [ "${time}" == "0" -o "${time}" -ge "3600" ]; then
+	    t1=`date +%s`
+	    ${BASEDIR}/bin/doveadm index -u ${usr} ${mb} # -S ${sock}
+	    t2=`date +%s`
+	    let "timeleft=t2-t1"
+	    echo $userinfo: indexing done in ${timeleft} sec >>${BASEDIR}/scripts/reindex.txt
+	    # update last reindex time
+	    echo `date +%s` >${timestamp}
+	fi
+    done <${BASEDIR}/data/index-que-work$1
+
+    rm -rf ${BASEDIR}/data/index-que-work$1
+    rm -rf ${BASEDIR}/data/index-que-work$1.bsy
+}
+
+# default mailbox is 'INBOX'
+if [ "${mbox}" == "" ]; then
+    mbox='INBOX'
+fi
+
+# if a queue does not exist, create it
+if [ ! -f ${BASEDIR}/data/index-que ]; then
+    # create an empty queue file
+    touch ${BASEDIR}/data/index-que
+fi
+
+# if a log file does not exist, create it
+if [ ! -f ${BASEDIR}/scripts/reindex.txt ]; then
+    touch ${BASEDIR}/scripts/reindex.txt
+fi
+
+# skip users from exclusions file
+for u in `cat ${excfile}`; do
+    if [ "$u" == "$USER" ]; then
+	exit 2
+    fi
+done
+
+echo "${USER} ${mbox}" >>${BASEDIR}/data/index-que
+userinfo="Processing ${USER} ${mbox}"
+
+# wait until all ${instances} queues are ended
+i=1
+while [ "${i}" -le "${instances}" ]; do
+    if [ ! -f "${BASEDIR}/data/index-que-work${i}.bsy" ]; then
+	break
+    fi
+    let "i=i+1"
+done
+
+if [ "${i}" -gt "${instances}" ]; then
+    # all queue slots are busy
+    echo  ${userinfo} indexing deferred >>${BASEDIR}/scripts/reindex.txt
+    exit 0
+fi
+
+# some queue slots are free -- reuse them
+if [ ! -f "${quelock}" ]; then
+    # process the main indexing queue serially
+    # lock index-que
+    echo `date +%s` >${quelock}
+
+    # make working copy of the queue
+    cp ${BASEDIR}/data/index-que ${BASEDIR}/data/index-que-work
+    # empty original queue
+    echo "">${BASEDIR}/data/index-que
+
+    lines=1
+    i=1
+    # distribute a main queue to ${instances} working queues
+    while read line; do
+	if [ ! -f ${BASEDIR}/data/index-que-work${i}  ]; then
+	    touch ${BASEDIR}/data/index-que-work${i}
+	fi
+	echo $line >>${BASEDIR}/data/index-que-work${i}
+	let "i=i+1"
+	if [ "${i}" -gt "${instances}" ]; then
+	    i=1
+	fi
+	let "lines=lines+1"
+    done <${BASEDIR}/data/index-que-work
+
+# exit 0
+
+    i=1
+    while [ "${i}" -le "${instances}" ]; do
+	if [ -f "${BASEDIR}/data/index-que-work${i}" -a \
+	     ! -f "${BASEDIR}/data/index-que-work${i}.bsy" ]; then
+	    # update timestamp
+	    echo `date +%s` >${BASEDIR}/data/index-que-work${i}.bsy
+	    # start work queue processing
+	    processque ${i} &
+	fi
+	let "i=i+1"
+    done
+
+    # unlock
+    rm -rf ${BASEDIR}/data/index-que-work
+    rm -rf ${quelock}
+fi
+
+exit 0

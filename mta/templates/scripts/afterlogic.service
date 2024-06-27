@@ -1,0 +1,14 @@
+[Unit]
+Description=afterlogic
+After=syslog.target network.target
+SourcePath=/etc/init.d/afterlogic.rc
+
+[Service]
+RemainAfterExit=yes
+Type=oneshot
+ExecStart=/etc/init.d/afterlogic.rc start
+ExecStop=/etc/init.d/afterlogic.rc stop
+ExecReload=/etc/init.d/afterlogic.rc restart
+
+[Install]
+WantedBy=multi-user.target

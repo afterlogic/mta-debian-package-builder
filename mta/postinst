@@ -1,0 +1,15 @@
+#!/bin/bash
+if [ "$1" = "configure" ]; then
+    if [ "$2" = "" ]; then
+        /bin/bash /opt/afterlogic/setup/users.sh
+        chown afterlogic:afterlogic -R /opt/afterlogic/html
+        /bin/bash /opt/afterlogic/setup/mysql.sh
+    else
+        rm -rf /opt/afterlogic/html/data
+        mkdir /opt/afterlogic/html/data
+        mv /tmp/amsdata/* /opt/afterlogic/html/data/
+        chown -R afterlogic:afterlogic /opt/afterlogic/html
+        rm -rf /tmp/amsdata
+        sudo -u afterlogic php /opt/afterlogic/setup/afterlogic.php upgrade
+    fi
+fi

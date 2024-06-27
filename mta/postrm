@@ -1,0 +1,35 @@
+#!/bin/bash
+MYSQL_CONF="/etc/mysql/debian.cnf"
+
+parse_mysql_config() {
+    local RES=`cat $MYSQL_CONF | grep -m 1 "^\s*$1\s*=" | sed 's/^.*=\s*\"\?\([^\"]*\)\"\?/\1/g'`
+    echo $RES
+}
+
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+
+    DB_NAME="afterlogic"
+    DB_USER="afterlogic"
+
+    MYSQL_USER=$(parse_mysql_config user)
+    MYSQL_PASS=$(parse_mysql_config password)
+
+    SQL_DROP_DATABASE="DROP DATABASE $DB_NAME;"
+    SQL_DROP_USER_STATEMENT="DROP USER '$DB_USER'@'localhost';"
+
+    if [ "$MYSQL_PASS" = "" ]; then
+        MYSQLRUN="mysql -u$MYSQL_USER"
+    else
+        MYSQLRUN="mysql -u$MYSQL_USER -p$MYSQL_PASS"
+    fi
+
+    echo "$SQL_DROP_DATABASE" | $MYSQLRUN 2>/dev/null
+    echo "$SQL_DROP_USER_STATEMENT" | $MYSQLRUN 2>/dev/null
+
+    user_exists=$(getent passwd afterlogic)
+    if [ -z "$user_exists" ] 
+    then
+        userdel afterlogic
+    fi
+fi
+

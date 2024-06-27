@@ -1,0 +1,8 @@
+#!/bin/bash
+if [ "$1" = "upgrade" ] && [ "$2" != "" ]; then
+    if [ -d /tmp/amsdata ]; then
+        rm -rf /tmp/amsdata
+    fi
+    mkdir /tmp/amsdata
+    mv /opt/afterlogic/html/data/* /tmp/amsdata
+fi
