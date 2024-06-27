@@ -1,6 +1,7 @@
 #!/bin/bash
 rm -rf ./tmp
 mkdir -p ./out
+mkdir -p ./web
 mkdir -p ./tmp/data/opt/afterlogic/html
 mkdir -p ./tmp/data/opt/afterlogic/setup
 mkdir -p ./tmp/data/opt/afterlogic/templates
