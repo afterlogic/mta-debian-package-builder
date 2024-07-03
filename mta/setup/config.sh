@@ -13,7 +13,8 @@ cp /opt/afterlogic/templates/nginx.conf.j2 /etc/nginx/nginx.conf
 
 # - php.yml
 
-cp -r  /etc/php/8.1 /etc/php/8.1_distr
+PHPVER=$(php -v | head -n 1 | cut -d " " -f 2 | cut -f1-2 -d".")
+cp -r  /etc/php/`echo $PHPVER` /etc/php/`echo $PHPVER`_distr
 
 mkdir -p /opt/afterlogic/run/php-fpm
 chown afterlogic:afterlogic -R /opt/afterlogic/run/php-fpm
@@ -27,13 +28,14 @@ mkdir -p /opt/afterlogic/var/run/php-fpm
 chown afterlogic:afterlogic -R /opt/afterlogic/var/run/php-fpm
 chmod 0775 -R /opt/afterlogic/var/run/php-fpm
 
-cp /opt/afterlogic/templates/php.ini.j2 /etc/php/8.1/fpm/php.ini
-cp /opt/afterlogic/templates/php-fpm.conf.j2 /etc/php/8.1/fpm/php-fpm.conf
-cp /opt/afterlogic/templates/www.conf.j2 /etc/php/8.1/fpm/pool.d/www.conf
+cp /opt/afterlogic/templates/php.ini.j2 /etc/php/`echo $PHPVER`/fpm/php.ini
+cp /opt/afterlogic/templates/php-fpm.conf.j2 /etc/php/`echo $PHPVER`/fpm/php-fpm.conf
+cp /opt/afterlogic/templates/www.conf.j2 /etc/php/`echo $PHPVER`/fpm/pool.d/www.conf
+sed -i -e "s/#phpver#/$PHPVER/g" /etc/php/`echo $PHPVER`/fpm/php-fpm.conf
 
 (crontab -l 2>/dev/null; cat /opt/afterlogic/templates/scripts/cron-root)| crontab -
 
-/etc/init.d/php8.1-fpm restart
+/etc/init.d/php`echo $PHPVER`-fpm restart
 /etc/init.d/nginx restart
 
 # - dovecot
