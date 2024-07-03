@@ -6,8 +6,9 @@ Installed-Size: %S%
 Depends: dovecot-core, dovecot-imapd, dovecot-lmtpd, dovecot-managesieved,
   dovecot-mysql, dovecot-pop3d, dovecot-sieve, dovecot-solr, exim4-base,
   exim4-config, exim4-daemon-heavy, exim4, spamassassin, nginx, sudo,
-  python3-mysqldb, mysql-server, php-cli, php-curl, php-common, php-fpm,
-  php-gd, php-json, php-mbstring, php-mysql, php-opcache, php-readline, php-xml
+  python3-mysqldb, mysql-server | default-mysql-server, php-cli, php-curl,
+  php-common, php-fpm, php-gd, php-json, php-mbstring, php-mysql,
+  php-opcache, php-readline, php-xml
 Conflicts: aurora-corporate-mta, postfix
 Section: mail
 Priority: extra
