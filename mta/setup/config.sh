@@ -75,4 +75,9 @@ chown afterlogic:afterlogic -R /opt/afterlogic/var/log/exim
 chmod 0755 -R /opt/afterlogic/var/log/exim
 
 /etc/init.d/exim4 restart
-/etc/init.d/spamassassin restart
+if [ -f /etc/init.d/spamassassin ]; then
+    /etc/init.d/spamassassin restart
+fi
+if [ -f /etc/init.d/spamd ]; then
+    /etc/init.d/spamd restart
+fi
