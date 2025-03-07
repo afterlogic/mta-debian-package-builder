@@ -8,7 +8,7 @@
 jobs=1
 g_interval="10"
 # user mailbox, if any
-#USER="denis2@afterlogic.com"
+#USER="admin@mydomain.com"
 
 USER=$1
 
