@@ -5,15 +5,23 @@
 # (c) Afterlogic Corp. 2009-2014
 ##
 
+# TODO, review if 'strict' error mode is needed
 set -e
-mail_home="/opt/afterlogic/data"
+MAIL_HOME="/opt/afterlogic/data"
 LOG_FILE=/opt/afterlogic/var/log/maildirdel-`date +%Y-%m-%d`.txt
 
-echo `date` " [DEL] ('${2}@${1}'): Domain: $1 User: $2" >> $LOG_FILE
+log () {
+	# check if current script has permissions to write to $LOG_FILE
+	if touch "$LOG_FILE" &>/dev/null; then
+		echo `date` $1 >> $LOG_FILE
+	fi
+}
 
-if [ -d "${mail_home}/$1/$2" ]
+log " [DEL] ('${2}@${1}'): Domain: $1 User: $2"
+
+if [ -d "${MAIL_HOME}/$1/$2" ]
 then
-	/bin/rm -rf "${mail_home}/$1/$2"
-	echo `date` " [MAILDIR DELETED] ('${2}@${1}'): '${mail_home}/${1}/${2}'" >> $LOG_FILE
+	/bin/rm -rf "${MAIL_HOME}/$1/$2"
+	log " [MAILDIR DELETED] ('${2}@${1}'): '${MAIL_HOME}/${1}/${2}'"
 fi
 
