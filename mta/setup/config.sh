@@ -42,6 +42,8 @@ sed -i -e "s/#phpver#/$PHPVER/g" /etc/php/`echo $PHPVER`/fpm/php-fpm.conf
 
 cp -r /etc/dovecot /etc/dovecot_distr
 cp -r /opt/afterlogic/templates/dovecot /etc/
+mkdir -p /opt/afterlogic/etc/sieve
+cp /opt/afterlogic/templates/system.sieve /opt/afterlogic/etc/sieve/system.sieve
 rm -rf /etc/dovecot/conf.d/15-mailboxes.conf
 sed -i -e "s/#mypassword#/$1/g" /etc/dovecot/dovecot-sql.conf 
 sed -i -e "s/#mypassword#/$1/g" /etc/dovecot/dovecot-user-quota-dict.conf 
@@ -57,6 +59,8 @@ chmod 0755 -R /opt/afterlogic/scripts
 mkdir -p /opt/afterlogic/data
 chown afterlogic:afterlogic -R /opt/afterlogic/data
 chmod 0755 -R /opt/afterlogic/data
+
+chown afterlogic:afterlogic -R /opt/afterlogic/etc/sieve
 
 /etc/init.d/dovecot restart
 
