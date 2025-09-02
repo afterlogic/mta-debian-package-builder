@@ -85,3 +85,9 @@ fi
 if [ -f /etc/init.d/spamd ]; then
     /etc/init.d/spamd restart
 fi
+
+if systemctl list-unit-files | grep -q "^spamassassin.service"; then
+    systemctl enable --now spamassassin
+elif systemctl list-unit-files | grep -q "^spamd.service"; then
+    systemctl enable --now spamd
+fi
