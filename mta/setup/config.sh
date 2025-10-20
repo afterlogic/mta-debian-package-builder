@@ -40,13 +40,32 @@ sed -i -e "s/#phpver#/$PHPVER/g" /etc/php/`echo $PHPVER`/fpm/php-fpm.conf
 
 # - dovecot
 
-cp -r /etc/dovecot /etc/dovecot_distr
-cp -r /opt/afterlogic/templates/dovecot /etc/
+DOVECOT_VER=$(/usr/sbin/dovecot --version)
+REQUIRED_VER="2.4"
+TEMPLATE_DIR="/opt/afterlogic/templates"
+DEST_DIR="/etc/dovecot"
+BACKUP_DIR="/etc/dovecot_distr"
+
+if [ "$(printf '%s\n' "$REQUIRED_VER" "$DOVECOT_VER" | sort -V | head -n1)" = "$REQUIRED_VER" ]; then
+    TEMPLATE_SRC="$TEMPLATE_DIR/dovecot-new"
+else
+    TEMPLATE_SRC="$TEMPLATE_DIR/dovecot"
+fi
+
+if [ -d "$DEST_DIR" ]; then
+    rm -rf "$BACKUP_DIR"
+    cp -r "$DEST_DIR" "$BACKUP_DIR"
+    rm -rf "$DEST_DIR"
+fi
+
+cp -r "$TEMPLATE_SRC" "$DEST_DIR"
+
 mkdir -p /opt/afterlogic/etc/sieve
 cp /opt/afterlogic/templates/system.sieve /opt/afterlogic/etc/sieve/system.sieve
 rm -rf /etc/dovecot/conf.d/15-mailboxes.conf
-sed -i -e "s/#mypassword#/$1/g" /etc/dovecot/dovecot-sql.conf 
-sed -i -e "s/#mypassword#/$1/g" /etc/dovecot/dovecot-user-quota-dict.conf 
+sed -i -e "s/#mypassword#/$1/g" /etc/dovecot/dovecot.conf
+sed -i -e "s/#mypassword#/$1/g" /etc/dovecot/dovecot-sql.conf 2>/dev/null || true
+sed -i -e "s/#mypassword#/$1/g" /etc/dovecot/dovecot-user-quota-dict.conf 2>/dev/null || true
 
 mkdir -p /opt/afterlogic/var/log/dovecot/
 chown afterlogic:afterlogic -R /opt/afterlogic/var/log/dovecot/

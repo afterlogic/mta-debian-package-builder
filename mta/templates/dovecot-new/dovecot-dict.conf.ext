@@ -1,0 +1,4 @@
+dict {	
+  userquotadict = mysql:/etc/dovecot/dovecot-user-quota-dict.conf
+  expire = mysql:/etc/dovecot/dovecot-sql.conf
+}
