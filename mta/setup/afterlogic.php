@@ -10,10 +10,10 @@ if ($param=="install") {
         $oSettings = \Aurora\System\Api::GetSettings();
         if ($oSettings)
         {
-            $oSettings->SetConf('DBHost', 'localhost');
-            $oSettings->SetConf('DBName', $argv[2]);
-            $oSettings->SetConf('DBLogin', $argv[3]);
-            $oSettings->SetConf('DBPassword', $argv[4]);
+            $oSettings->SetValue('DBHost', 'localhost');
+            $oSettings->SetValue('DBName', $argv[2]);
+            $oSettings->SetValue('DBLogin', $argv[3]);
+            $oSettings->SetValue('DBPassword', $argv[4]);
             $result = $oSettings->Save();
 
             echo "Creating database and updating configuration files".CRLF;
