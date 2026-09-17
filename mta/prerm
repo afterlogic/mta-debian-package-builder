@@ -1,4 +1,33 @@
 #!/bin/bash
+DEFAULT_DATA_DIR="/opt/afterlogic/html/data"
+SETTINGS_FILE="/opt/afterlogic/html/inc_settings_path.php"
+
+# Data directory can be relocated via inc_settings_path.php (see
+# https://afterlogic.com/docs/aurora/security/protecting-data-directory) --
+# resolve it the same way Aurora\System\Api::DataPath() does, so removal
+# cleans up the actual data directory rather than a decoy default one.
+resolve_data_dir() {
+    local resolved=""
+    if [ -f "$SETTINGS_FILE" ] && command -v php >/dev/null 2>&1; then
+        resolved=$(php -d display_errors=0 -r '
+            $dataPath = "data";
+            @include $argv[1];
+            $dataPath = (string) $dataPath;
+            if ($dataPath === "") { $dataPath = "data"; }
+            if ($dataPath[0] !== "/") { $dataPath = "/opt/afterlogic/html/" . $dataPath; }
+            echo rtrim($dataPath, "/");
+        ' "$SETTINGS_FILE" 2>/dev/null)
+    fi
+    if [ -z "$resolved" ] || [ "$resolved" = "/" ]; then
+        resolved="$DEFAULT_DATA_DIR"
+    fi
+    echo "$resolved"
+}
+
+DATA_DIR=$(resolve_data_dir)
+
 if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
-    rm -rf /opt/afterlogic/html/data
+    if [ -n "$DATA_DIR" ] && [ "$DATA_DIR" != "/" ]; then
+        rm -rf "$DATA_DIR"
+    fi
 fi
