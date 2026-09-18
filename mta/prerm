@@ -12,6 +12,10 @@ resolve_data_dir() {
         resolved=$(php -d display_errors=0 -r '
             $dataPath = "data";
             @include $argv[1];
+            // inc_settings_path.php can set either $dataPath or define(AU_API_DATA_FOLDER, ...)
+            // directly (the documented mechanism) - Api::DataPath() checks the constant first,
+            // so this has to match or a define()-only settings file is silently ignored here.
+            if (defined("AU_API_DATA_FOLDER")) { $dataPath = AU_API_DATA_FOLDER; }
             $dataPath = (string) $dataPath;
             if ($dataPath === "") { $dataPath = "data"; }
             if ($dataPath[0] !== "/") { $dataPath = "/opt/afterlogic/html/" . $dataPath; }
