@@ -19,6 +19,8 @@ server {
   }
 
   location ^~ /data/ { deny all; }
+  location ^~ /dev/ { deny all; }
+  location ^~ /modules/ { deny all; }
 
   location / {
   }
